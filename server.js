@@ -4,20 +4,33 @@ const mysql = require("mysql2");
 const path = require("path");
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
+// MySQL connection
 const db = mysql.createConnection({
   host: process.env.DB_HOST || "localhost",
   user: process.env.DB_USER || "root",
   password: process.env.DB_PASSWORD || "root123",
   database: process.env.DB_NAME || "lifedrop",
-  port: process.env.DB_PORT || 3306
+  port: Number(process.env.DB_PORT) || 3306,
+
+  // Aiven requires SSL
+  ssl: process.env.DB_HOST
+    ? {
+        rejectUnauthorized: false
+      }
+    : undefined
 });
 
 db.connect(err => {
-  if (err) return console.log("❌ MySQL Error:", err.message);
+  if (err) {
+    console.log("❌ MySQL Error:", err.message);
+    return;
+  }
+
   console.log("✅ MySQL Connected");
 });
 
@@ -26,10 +39,16 @@ app.get("/", (req, res) => {
 });
 
 app.get("/api/locations", (req, res) => {
-  db.query("SELECT * FROM blood_locations ORDER BY id DESC", (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(rows);
-  });
+  db.query(
+    "SELECT * FROM blood_locations ORDER BY id DESC",
+    (err, rows) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+
+      res.json(rows);
+    }
+  );
 });
 
 app.post("/api/locations", (req, res) => {
@@ -41,22 +60,29 @@ app.post("/api/locations", (req, res) => {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
-  db.query(sql, [
-    d.name,
-    d.type,
-    d.blood_group,
-    d.city,
-    d.state,
-    d.lat,
-    d.lng,
-    d.contact || "",
-    d.email || "",
-    d.units || 1,
-    d.status || "pending"
-  ], err => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ message: "Saved successfully" });
-  });
+  db.query(
+    sql,
+    [
+      d.name,
+      d.type,
+      d.blood_group,
+      d.city,
+      d.state,
+      d.lat,
+      d.lng,
+      d.contact || "",
+      d.email || "",
+      d.units || 1,
+      d.status || "pending"
+    ],
+    err => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+
+      res.json({ message: "Saved successfully" });
+    }
+  );
 });
 
 app.put("/api/locations/:id", (req, res) => {
@@ -68,36 +94,52 @@ app.put("/api/locations/:id", (req, res) => {
     WHERE id=?
   `;
 
-  db.query(sql, [
-    d.name,
-    d.type,
-    d.blood_group,
-    d.city,
-    d.state,
-    d.lat,
-    d.lng,
-    d.contact || "",
-    d.email || "",
-    d.units || 1,
-    d.status || "pending",
-    req.params.id
-  ], err => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ message: "Updated successfully" });
-  });
+  db.query(
+    sql,
+    [
+      d.name,
+      d.type,
+      d.blood_group,
+      d.city,
+      d.state,
+      d.lat,
+      d.lng,
+      d.contact || "",
+      d.email || "",
+      d.units || 1,
+      d.status || "pending",
+      req.params.id
+    ],
+    err => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+
+      res.json({ message: "Updated successfully" });
+    }
+  );
 });
 
-
 app.delete("/api/locations/:id", (req, res) => {
-  db.query("DELETE FROM blood_locations WHERE id = ?", [req.params.id], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
+  db.query(
+    "DELETE FROM blood_locations WHERE id = ?",
+    [req.params.id],
+    (err, result) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Record not found" });
+      if (result.affectedRows === 0) {
+        return res.status(404).json({
+          error: "Record not found"
+        });
+      }
+
+      res.json({
+        message: "Deleted successfully"
+      });
     }
-
-    res.json({ message: "Deleted successfully" });
-  });
+  );
 });
 
 app.patch("/api/locations/:id/status", (req, res) => {
@@ -105,7 +147,9 @@ app.patch("/api/locations/:id/status", (req, res) => {
   const { id } = req.params;
 
   if (!["pending", "accepted", "rejected"].includes(status)) {
-    return res.status(400).json({ error: "Invalid status" });
+    return res.status(400).json({
+      error: "Invalid status"
+    });
   }
 
   db.query(
@@ -114,14 +158,21 @@ app.patch("/api/locations/:id/status", (req, res) => {
     (err, result) => {
       if (err) {
         console.log("❌ Status update error:", err.message);
-        return res.status(500).json({ error: err.message });
+
+        return res.status(500).json({
+          error: err.message
+        });
       }
 
       if (result.affectedRows === 0) {
-        return res.status(404).json({ error: "Record not found" });
+        return res.status(404).json({
+          error: "Record not found"
+        });
       }
 
-      res.json({ message: `Request marked as ${status}` });
+      res.json({
+        message: `Request marked as ${status}`
+      });
     }
   );
 });
