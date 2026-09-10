@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LifeDrop - Blood Bank System</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-900">
+
+  <nav class="fixed w-full z-50 transition-all duration-300 bg-white border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-20">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="showScreen('home-screen'); window.scrollTo(0,0)">
+          <div class="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/20 text-white font-black text-xl tracking-tighter">L+</div>
+          <div>
+            <h1 class="font-extrabold text-xl text-slate-900 leading-none">LifeDrop</h1>
+            <p class="text-[10px] uppercase tracking-widest font-bold text-red-600 mt-1">Network</p>
+          </div>
+        </div>
+
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="#home-screen" class="text-sm font-bold text-slate-600 hover:text-red-600 transition" onclick="event.preventDefault(); showScreen('home-screen'); window.scrollTo(0,0);">Home</a>
+          <a href="#about-section" class="text-sm font-bold text-slate-600 hover:text-red-600 transition">About</a>
+          <a href="#hospitals-section" class="text-sm font-bold text-slate-600 hover:text-red-600 transition">Hospitals</a>
+          <a href="#campaigns-section" class="text-sm font-bold text-slate-600 hover:text-red-600 transition">Campaigns</a>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <button id="nav-dashboard-btn" class="hidden text-sm font-bold text-slate-700 hover:text-red-600 transition" onclick="goToDashboard()">My Dashboard</button>
+          <button id="nav-logout-btn" class="hidden text-sm font-bold text-slate-700 hover:text-red-600 transition" onclick="logout()">Logout</button>
+          <button id="nav-login-btn" class="bg-slate-900 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-slate-900/10 hover:bg-slate-800 transition transform hover:-translate-y-0.5" onclick="showScreen('auth-screen')">Login / Register</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main-content" class="pt-20">
+
+    <section id="home-screen" class="screen">
+      <div class="relative overflow-hidden bg-slate-50 min-h-screen pb-20">
+        <div class="absolute inset-0 z-0 opacity-40">
+          <div class="absolute inset-0 bg-gradient-to-r from-red-50 to-white"></div>
+          <svg class="absolute right-0 top-0 h-full w-1/2 opacity-20" fill="none" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <polygon points="0,0 100,0 100,100" fill="#dc2626"></polygon>
+          </svg>
+        </div>
+
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 sm:pb-24">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+
+            <div class="max-w-2xl">
+              <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-100 border border-red-200 mb-8">
+                <span class="flex h-2 w-2 rounded-full bg-red-600 animate-pulse"></span>
+                <span class="text-xs font-bold text-red-700 tracking-wide uppercase">Urgent: O- shortage today</span>
+              </div>
+
+              <h1 class="text-5xl sm:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.1]">
+                Every drop <br />
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-400">is a lifeline.</span>
+              </h1>
+
+              <p class="mt-6 text-lg text-slate-600 leading-relaxed font-medium max-w-xl">
+                LifeDrop connects hospitals, donors, and patients in real-time. Join the network today and help us ensure blood is always available when it matters most.
+              </p>
+
+              <div class="mt-10 flex flex-col sm:flex-row gap-4">
+                <button class="bg-red-600 text-white px-8 py-4 rounded-xl text-base font-bold shadow-lg shadow-red-500/25 hover:bg-red-700 hover:-translate-y-0.5 transition" onclick="showScreen('auth-screen'); selectRole('donor')">
+                  <i class="fa-solid fa-heart mr-2"></i> Donate Blood
+                </button>
+                <button class="bg-white text-slate-900 border border-slate-200 px-8 py-4 rounded-xl text-base font-bold shadow-sm hover:border-slate-300 hover:bg-slate-50 transition" onclick="showScreen('auth-screen'); selectRole('patient')">
+                  Request Blood
+                </button>
+              </div>
+            </div>
+
+            <div class="relative hidden lg:block">
+              <div class="absolute inset-0 bg-gradient-to-tr from-red-100 to-blue-50 rounded-[3rem] transform rotate-3 scale-105 opacity-50"></div>
+              <img
+                src="https://images.unsplash.com/photo-1615461066841-6116e61058f4?q=80&w=2683&auto=format&fit=crop"
+                alt="Blood donation"
+                class="relative rounded-[3rem] shadow-2xl border-8 border-white object-cover h-[600px] w-full"
+              />
+              <div class="absolute -bottom-6 -left-6 bg-white p-6 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-4 animate-bounce-slight">
+                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                  <i class="fa-solid fa-check text-xl"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-slate-900">4,209 Units</h4>
+                  <p class="text-xs text-slate-500 font-medium">Successfully delivered</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div id="about-section" class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 mt-12 scroll-mt-24">
+          <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-200 p-10 sm:p-16">
+            <div class="max-w-3xl mx-auto text-center">
+              <h2 class="text-3xl font-bold text-slate-900 mb-6">About LifeDrop</h2>
+              <p class="text-lg text-slate-600 leading-relaxed">
+                LifeDrop is a next-generation blood management system built to end artificial shortages. By streamlining the flow of inventory data between donors, patients, and healthcare networks, we ensure that every critical need is met efficiently.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div id="hospitals-section" class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 scroll-mt-24">
+          <h2 class="text-3xl font-bold text-slate-900 mb-8 text-center bg-white py-4 rounded-xl shadow-sm border border-slate-200">Our Network Hospitals</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+              <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-4">
+                <i class="fa-solid fa-hospital text-xl"></i>
+              </div>
+              <h3 class="font-bold text-lg text-slate-900">City General Hospital</h3>
+              <p class="text-sm text-slate-500 mt-2">Connecting since 2021</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+              <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-4">
+                <i class="fa-solid fa-hospital text-xl"></i>
+              </div>
+              <h3 class="font-bold text-lg text-slate-900">Mercy Medical Center</h3>
+              <p class="text-sm text-slate-500 mt-2">Connecting since 2022</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+              <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-4">
+                <i class="fa-solid fa-hospital text-xl"></i>
+              </div>
+              <h3 class="font-bold text-lg text-slate-900">St. Jude's Care</h3>
+              <p class="text-sm text-slate-500 mt-2">Connecting since 2023</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="campaigns-section" class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12 scroll-mt-24">
+          <h2 class="text-3xl font-bold text-slate-900 mb-8 text-center bg-white py-4 rounded-xl shadow-sm border border-slate-200">Active Campaigns</h2>
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 overflow-hidden relative">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-red-50 rounded-bl-full z-0"></div>
+            <div class="relative z-10 flex flex-col sm:flex-row items-center gap-8">
+              <div class="w-20 h-20 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <i class="fa-solid fa-droplet text-3xl"></i>
+              </div>
+              <div class="flex-1 text-center sm:text-left">
+                <h3 class="text-2xl font-bold text-slate-900">Summer Blood Drive 2026</h3>
+                <p class="text-slate-600 mt-2">Join us downtown this weekend. We're aiming for 500 donors to replenish the seasonal shortage!</p>
+              </div>
+              <button class="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-slate-800 transition whitespace-nowrap" onclick="showScreen('auth-screen'); selectRole('donor')">
+                Join Campaign
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="auth-screen" class="screen hidden min-h-[calc(100vh-80px)] bg-slate-50 flex flex-col py-12 px-4 sm:px-6 lg:px-8 relative">
+      <div id="role-selection" class="max-w-3xl w-full mx-auto my-auto space-y-8">
+        <div class="text-center">
+          <h2 class="mt-6 text-3xl font-extrabold text-slate-900 tracking-tight">Choose your portal</h2>
+          <p class="mt-2 text-sm text-slate-600 max-w-lg mx-auto">
+            Select how you would like to interact with the LifeDrop network today.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          <div onclick="selectRole('donor')" class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-red-200 transition-all cursor-pointer text-center group">
+            <div class="mx-auto w-16 h-16 bg-red-50 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <i class="fa-solid fa-heart text-red-600 text-3xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2">Donor</h3>
+            <p class="text-xs text-slate-500">Donate blood and save lives</p>
+          </div>
+
+          <div onclick="selectRole('patient')" class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all cursor-pointer text-center group">
+            <div class="mx-auto w-16 h-16 bg-blue-50 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <i class="fa-solid fa-heart-pulse text-blue-600 text-3xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2">Patient</h3>
+            <p class="text-xs text-slate-500">Request emergency blood units</p>
+          </div>
+
+          <div onclick="selectRole('admin')" class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all cursor-pointer text-center group">
+            <div class="mx-auto w-16 h-16 bg-emerald-50 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <i class="fa-solid fa-shield-halved text-emerald-600 text-3xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2">Admin</h3>
+            <p class="text-xs text-slate-500">Manage hospital inventory</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="auth-form-container" class="hidden w-full max-w-md mx-auto my-auto">
+        <div class="absolute top-8 left-8 hidden lg:block">
+          <button onclick="backToRoleSelection()" class="text-slate-500 hover:text-slate-900 text-sm font-medium transition flex items-center">
+            <i class="fa-solid fa-arrow-left mr-2"></i> Change Role
+          </button>
+        </div>
+
+        <div class="mx-auto w-20 h-20 bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center mb-6">
+          <i id="auth-role-icon" class="fa-solid fa-user text-slate-600 text-3xl"></i>
+        </div>
+
+        <h2 id="auth-title" class="mt-6 text-center text-3xl font-extrabold text-slate-900 tracking-tight capitalize">
+          Donor Portal
+        </h2>
+        <p id="auth-toggle-wrapper" class="mt-2 text-center text-sm text-slate-600">
+          <span id="auth-subtitle">Don't have an account?</span>
+          <button id="auth-toggle-btn" type="button" onclick="toggleAuthMode()" class="font-bold text-red-600 hover:text-red-700 transition ml-1">
+            Create one now
+          </button>
+        </p>
+
+        <div class="bg-white py-8 px-4 shadow-xl shadow-slate-200/50 sm:rounded-2xl sm:px-10 border border-slate-200 mt-8">
+          <div id="auth-error" class="hidden mb-6 bg-red-50 text-red-700 p-4 rounded-xl flex items-start gap-3 border border-red-100 text-sm font-medium">
+            <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
+            <span id="auth-error-msg">Error</span>
+          </div>
+
+          <form id="auth-form" class="space-y-5" onsubmit="handleAuthSubmit(event)">
+            <input type="hidden" id="auth-role-input" value="">
+            <input type="hidden" id="auth-is-login" value="true">
+
+            <div id="register-fields" class="hidden space-y-5">
+              <div>
+                <label for="name" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Full Name</label>
+                <input id="name" type="text" class="appearance-none block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all" placeholder="Enter Name">
+              </div>
+
+              <div id="blood-group-field">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Blood Group</label>
+                <select id="bloodGroup" class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all appearance-none cursor-pointer">
+                  <option value="" disabled selected>Select a group...</option>
+                  <option>A+</option><option>A-</option>
+                  <option>B+</option><option>B-</option>
+                  <option>AB+</option><option>AB-</option>
+                  <option>O+</option><option>O-</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label id="email-label" for="email" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Email Address</label>
+              <input id="email" type="email" required class="appearance-none block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all" placeholder="you@example.com">
+            </div>
+
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <label for="password" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Password</label>
+              </div>
+              <input id="password" type="password" required class="appearance-none block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all" placeholder="••••••••">
+            </div>
+
+            <button type="submit" id="auth-submit-btn" class="w-full h-12 bg-slate-900 border-none outline-none text-white rounded-xl text-sm font-bold shadow-lg shadow-slate-900/20 mt-4 group disabled:opacity-50">
+              <span id="auth-submit-text">Sign In</span>
+              <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+            </button>
+
+            <div id="admin-notice" class="hidden mt-6 p-4 rounded-xl bg-blue-50 border border-blue-100 flex items-start gap-3">
+              <div class="bg-blue-100 text-blue-700 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-bold">
+                <i class="fa-solid fa-info"></i>
+              </div>
+              <p class="text-xs text-blue-800 leading-relaxed font-medium">
+                Default Admin: admin3110@gmail.com / admin1234
+              </p>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section id="dashboard-layout" class="screen hidden min-h-[calc(100vh-80px)] bg-slate-50 p-4 sm:p-8">
+      <div class="max-w-7xl mx-auto flex h-full flex-col lg:flex-row gap-8">
+
+        <aside class="w-full lg:w-64 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col overflow-hidden h-fit">
+          <div class="p-6 border-b border-slate-200 bg-red-50/50">
+            <h2 id="dash-role-title" class="font-bold text-slate-800 tracking-tight uppercase text-xs">Dashboard</h2>
+          </div>
+
+          <nav id="dash-nav" class="flex-1 px-4 py-4 space-y-1"></nav>
+
+          <div class="p-4 border-t border-slate-200 bg-slate-50">
+            <div class="flex items-center gap-3 px-3 py-2">
+              <div id="dash-user-initial" class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold border-2 border-white shadow-sm">U</div>
+              <div class="flex-1 min-w-0">
+                <p id="dash-user-name" class="text-sm font-bold text-slate-900 truncate">User Name</p>
+                <p id="dash-user-role" class="text-[10px] font-bold text-slate-500 uppercase tracking-wide truncate">Role</p>
+              </div>
+            </div>
+            <button onclick="logout()" class="mt-4 flex w-full items-center justify-center px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-colors">
+              <i class="fa-solid fa-arrow-right-from-bracket mr-2"></i> Log Out
+            </button>
+          </div>
+        </aside>
+
+        <div class="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden h-[80vh] flex flex-col">
+          <header class="h-20 border-b border-slate-200 flex items-center justify-between px-8 bg-white shrink-0">
+            <h2 id="dash-view-title" class="text-xl font-bold tracking-tight text-slate-800">Overview</h2>
+          </header>
+          <div id="dash-content-area" class="flex-1 overflow-auto p-8 bg-slate-50/50"></div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
